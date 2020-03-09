@@ -31,6 +31,6 @@ while True:
     else:
         res.append((w[i - 1], v[i - 1]))
         i -= 1; j -= w[i]
-print("Items selected: ", res)
+print("Items selected: ", len(res), res)
 print("Total weight: ", sum([t[0] for t in res]))
 print("Total value: ", sum([t[1] for t in res]))
