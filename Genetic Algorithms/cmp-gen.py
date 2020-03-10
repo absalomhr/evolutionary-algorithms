@@ -29,7 +29,8 @@ def generate_random_population(n, c_len):
     return lst
 
 # Decoding functions
-def get_totalx(chromo, denos, incre):
+def get_totalx(chromo, denos):
+    incre = c_len // len(denos)
     div = incre
     start = 0
     tx = 0
@@ -39,7 +40,8 @@ def get_totalx(chromo, denos, incre):
         div += incre
     return tx
 
-def get_n_items(chromo, d_len, incre):
+def get_n_items(chromo, d_len):
+    incre = c_len // len(denos)
     div = incre
     start = 0
     n_items = 0
@@ -50,27 +52,27 @@ def get_n_items(chromo, d_len, incre):
     return n_items
 
 def fitness_function(chromo, denos, total, c_len):
-    incre = c_len // len(denos)
-    totalx = get_totalx(chromo, denos, incre)
-    n_sum = get_n_items(chromo, len(denos), incre)
+    totalx = get_totalx(chromo, denos)
+    n_sum = get_n_items(chromo, len(denos))
     alpha = 1; betha = 1
     return alpha * abs(total - totalx) + betha * n_sum
     
 
-def evaluate_population(chromosomes, demos, total, c_len):
+def evaluate_population(chromosomes, denos, total, c_len):
     fitness_values = []
     for c in chromosomes:
-        fitness_values.append(fitness_function(c, demos, total, c_len))
+        fitness_values.append(fitness_function(c, denos, total, c_len))
     return fitness_values
 
 def generate_wheel_values(fitness_values):
     # Normalize fitness values
-    sum_fit = sum(fitness_values)
-    w_values = [1.0-(fv/sum_fit) for fv in fitness_values]
+    sum_fit = max(fitness_values)
+    w_values = [((sum_fit + 0.10 * sum_fit)-fv) for fv in fitness_values]
+    w_values = [x/sum(w_values) for x in w_values]
     return w_values
 
 def choose_random_from_wheel(fitness_values):
-    maxfv = 1.0
+    maxfv = sum(fitness_values)
     spin = uniform(0, maxfv)
     current = 0
     for i in range(len(fitness_values)):
@@ -78,23 +80,8 @@ def choose_random_from_wheel(fitness_values):
         if current > spin:
             return i
 
-# print(create_chromosome(9))
-# print(mutate_chromosome("000111", 6))
-# print(crossover("000000", "111111", 6))
-# print(fitness_function("010010010", [5,2,1], 9, 9))
-
-# chromos = ["000111", "000001", "100000"]
-# t = 10
-# de = [5,2,1]
-# c_len = 6
-
-# fv = evaluate_population(chromos, de, t, c_len)
-# print(fv)
-# wv = generate_wheel_values(fv)
-# print(wv)
-
 # Inputs
-total = int(input)
+total = int(input())
 denos = [int(x) for x in input().split()]
 
 # Hyperparameters
@@ -108,3 +95,27 @@ n_generations = 10
 # Makes sorting a little faste
 ig = operator.itemgetter(1)
 
+first_gen = generate_random_population(n_chromosomes, c_len)
+for g in range(n_generations):
+    new_gen = []
+    fitness_values = evaluate_population(first_gen, denos, total, c_len)
+    # Sorting the chromosomes by their fitness value
+    zipped = zip(first_gen, fitness_values)
+    zipped = sorted(zipped, key=ig, reverse=True)
+    first_gen, fitness_values = zip(*zipped)
+    best_total = get_totalx(first_gen[-1], denos)
+    best_items = get_n_items(first_gen[-1], len(denos))
+    print("Generation {} -> Best result so far: {}, with the chromosome: {}, totalx and nitems ({}, {})".format(g + 1, fitness_values[-1], first_gen[-1], best_total, best_items))
+    # Normalizing the fitness values from 0 to 1
+    wheel_values = generate_wheel_values(fitness_values)
+    # Elitism, best 2 chromosomes go directly to the next generation
+    new_gen.append(first_gen[-1]); new_gen.append(first_gen[-2])
+    for i in range(n_chromosomes - 2):
+        p1 = first_gen[choose_random_from_wheel(wheel_values)]
+        p2 = first_gen[choose_random_from_wheel(wheel_values)]
+        child = crossover(p1, p2, c_len)
+        if uniform(0, 1) <= prob_mutation:
+           child = mutate_chromosome(child, c_len)
+        new_gen.append(child)
+    if g != n_generations - 1:
+        first_gen = new_gen.copy()
