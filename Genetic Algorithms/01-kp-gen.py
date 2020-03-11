@@ -62,10 +62,9 @@ vals = [int(x) for x in input().split()]
 c_len = len(vals)
 
 # Hyperparameters
-n_chromosomes = 300
-prob_mutation = 0.70
-n_generations = 100
-
+n_chromosomes = 100
+prob_mutation = 0.50
+n_generations = 500
 # Utility
 # Makes sorting a little faste
 ig = operator.itemgetter(1)
