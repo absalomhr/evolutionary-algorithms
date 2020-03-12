@@ -119,3 +119,13 @@ for g in range(n_generations):
         new_gen.append(child)
     if g != n_generations - 1:
         first_gen = new_gen.copy()
+    
+incre = c_len // len(denos)
+div = incre
+start = 0
+print("Coins used: ")
+for d in denos:
+    n = int(first_gen[-1][start:div], base=2)
+    print("{}: {}".format(d, n))
+    start += incre
+    div += incre
